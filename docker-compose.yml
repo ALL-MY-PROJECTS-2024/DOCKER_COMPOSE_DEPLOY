@@ -16,8 +16,6 @@ services:
         ipv4_address: 192.168.1.10
     ports:
       - "3000:80" # React Nginx 포트 매핑
-    volumes:
-      - ./FN:/CCTV_WEATHER_PROJECT_FN # 로컬 파일 동기화
 
   yolo:
     image: junwoogyun/flask-opencv-app:latest # Docker Hub 이미지
@@ -27,8 +25,6 @@ services:
         ipv4_address: 192.168.1.100
     ports:
       - "5000:5000" # YOLO Flask 포트 매핑
-    volumes:
-      - ./YOLO:/app # YOLO 코드 동기화
 
   predict:
     image: junwoogyun/flask-opencv-app2:latest # Docker Hub 이미지
@@ -40,5 +36,3 @@ services:
       - "5002:5002"
       - "5003:5003"
       - "5004:5004" # Predict Flask 포트 매핑
-    volumes:
-      - ./PREDICT:/app # PREDICT 코드 동기화
