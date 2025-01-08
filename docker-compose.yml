@@ -9,9 +9,7 @@ networks:
 
 services:
   fn:
-    build:
-      context: ./FN
-    image: react-docker-app # 이미지 이름 지정
+    image: junwoogyun/react-docker-app:latest # Docker Hub 이미지
     container_name: react-container
     networks:
       my-custom-network:
@@ -22,9 +20,7 @@ services:
       - ./FN:/CCTV_WEATHER_PROJECT_FN # 로컬 파일 동기화
 
   yolo:
-    build:
-      context: ./YOLO
-    image: flask-opencv-app # 이미지 이름 지정
+    image: junwoogyun/flask-opencv-app:latest # Docker Hub 이미지
     container_name: flask-opencv-container
     networks:
       my-custom-network:
@@ -35,9 +31,7 @@ services:
       - ./YOLO:/app # YOLO 코드 동기화
 
   predict:
-    build:
-      context: ./PREDICT
-    image: flask-opencv-app2 # 이미지 이름 지정
+    image: junwoogyun/flask-opencv-app2:latest # Docker Hub 이미지
     container_name: flask-opencv-container2
     networks:
       my-custom-network:
