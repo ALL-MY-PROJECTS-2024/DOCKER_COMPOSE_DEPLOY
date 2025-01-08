@@ -13,7 +13,7 @@ services:
     container_name: react-container
     networks:
       my-custom-network:
-        ipv4_address: 192.168.1.10
+        ipv4_address: 192.168.1.11
     ports:
       - "3000:80" # React Nginx 포트 매핑
 
@@ -22,7 +22,7 @@ services:
     container_name: flask-opencv-container
     networks:
       my-custom-network:
-        ipv4_address: 192.168.1.100
+        ipv4_address: 192.168.1.101
     ports:
       - "5000:5000" # YOLO Flask 포트 매핑
 
@@ -31,7 +31,7 @@ services:
     container_name: flask-opencv-container2
     networks:
       my-custom-network:
-        ipv4_address: 192.168.1.200
+        ipv4_address: 192.168.1.201
     ports:
       - "5002:5002"
       - "5003:5003"
