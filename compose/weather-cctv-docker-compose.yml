@@ -1,0 +1,86 @@
+version: "3.9"
+
+networks:
+  my-custom-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+
+services:
+  mysql8:
+    image: junwoogyun/mysql-custom:1.0 
+    container_name: mysql8-container
+    networks:
+      my-custom-network:
+        ipv4_address: 192.168.1.30
+    ports:
+      - "3330:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    environment:
+      MYSQL_ROOT_PASSWORD: Zhfldk11!
+      MYSQL_DATABASE: bookdb
+      MYSQL_USER: dbonn
+      MYSQL_PASSWORD: Zhfldk11!
+
+  redis:
+    image: junwoogyun/bn_redis:latest
+    container_name: bn_redis-container
+    networks:
+      my-custom-network:
+        ipv4_address: 192.168.1.50
+    ports:
+      - "6376:6376"
+
+  yolo:
+    image: junwoogyun/flask-opencv-app:latest
+    container_name: flask-opencv-container
+    networks:
+      my-custom-network:
+        ipv4_address: 192.168.1.100
+    ports:
+      - "5000:5000"
+
+  predict:
+    image: junwoogyun/flask-opencv-app2:latest
+    container_name: flask-opencv-container2
+    networks:
+      my-custom-network:
+        ipv4_address: 192.168.1.200
+    ports:
+      - "5002:5002"
+      - "5003:5003"
+      - "5004:5004"
+
+  auth:
+    image: junwoogyun/bn_auth:latest
+    container_name: bn_auth-container
+    networks:
+      my-custom-network:
+        ipv4_address: 192.168.1.40
+    depends_on:
+      mysql8:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8095/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    ports:
+      - "8095:8095" 
+
+  fn:
+    image: junwoogyun/react-docker-app:latest
+    container_name: react-container
+    networks:
+      my-custom-network:
+        ipv4_address: 192.168.1.10
+    depends_on:
+      auth:
+        condition: service_healthy
+    ports:
+      - "3000:80"
