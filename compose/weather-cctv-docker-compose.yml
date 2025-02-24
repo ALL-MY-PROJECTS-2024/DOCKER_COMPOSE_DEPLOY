@@ -72,7 +72,7 @@ services:
       - MYSQL_PORT=3306
       - MYSQL_USER=dbconn
       - MYSQL_PASSWORD=Zhfldk11!
-      - MYSQL_DATABASE=testdb
+      - MYSQL_DATABASE=bookdb
       - REDIS_HOST=bn_redis-container
       - REDIS_PORT=6379
     healthcheck:
@@ -80,6 +80,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+      start_period: 30s
+    restart: on-failure:3
     ports:
       - "8095:8095"
 

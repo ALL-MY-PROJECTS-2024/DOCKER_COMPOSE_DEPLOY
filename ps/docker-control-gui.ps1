@@ -6,13 +6,107 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-# Docker 명령어 스크립트 로드
-. (Join-Path -Path $PSScriptRoot -ChildPath "docker-commands.ps1")
+# 공통 함수들
+function Get-ProjectPath {
+    return Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+}
+
+function Update-Project {
+    $projectPath = Get-ProjectPath
+    
+    try {
+        # 현재 디렉토리로 이동
+        Set-Location -Path $projectPath
+        
+        # Git 저장소 확인 및 설정
+        if (-not (Test-Path ".git")) {
+            # Git 저장소가 없으면 초기화
+            git init
+            git remote add origin "https://github.com/ALL-MY-PROJECTS-2024/DOCKER_COMPOSE_DEPLOY.git"
+            $beforeHash = "no-commit"
+        } else {
+            # 기존 remote 확인 및 업데이트
+            $remotes = git remote
+            if ($remotes -contains "origin") {
+                git remote set-url origin "https://github.com/ALL-MY-PROJECTS-2024/DOCKER_COMPOSE_DEPLOY.git"
+            } else {
+                git remote add origin "https://github.com/ALL-MY-PROJECTS-2024/DOCKER_COMPOSE_DEPLOY.git"
+            }
+            
+            # 현재 커밋 해시 저장 (에러 무시)
+            $beforeHash = git rev-parse HEAD 2>$null
+            if ($LASTEXITCODE -ne 0) {
+                $beforeHash = "no-commit"
+            }
+        }
+        
+        # Git fetch 실행
+        git fetch origin
+        
+        # 브랜치 처리
+        $currentBranch = git branch --show-current 2>$null
+        if ($LASTEXITCODE -ne 0 -or -not $currentBranch) {
+            # 브랜치가 없는 경우 main 브랜치 생성
+            git checkout -b main
+        } elseif ($currentBranch -ne "main") {
+            # main 브랜치로 전환
+            git checkout main 2>$null
+            if ($LASTEXITCODE -ne 0) {
+                git checkout -b main
+            }
+        }
+        
+        # Git pull 실행 (에러 무시)
+        $pullOutput = git pull origin main 2>&1
+        
+        # 현재 커밋 해시 확인
+        $afterHash = git rev-parse HEAD 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            $afterHash = "no-commit"
+        }
+        
+        # 변경사항이 있는지 확인 (Already up to date 메시지 확인)
+        $hasChanges = -not ($pullOutput -match "Already up to date")
+        
+        # 현재 실행 중인 컨테이너 확인 및 재시작 (변경사항이 있을 때만)
+        if ($hasChanges) {
+            $weatherRunning = docker ps -q -f name=weather
+            $buildingRunning = docker ps -q -f name=building
+            
+            if ($weatherRunning) {
+                Stop-WeatherCCTV
+                Start-Sleep -Seconds 5
+                Start-WeatherCCTV
+            }
+            
+            if ($buildingRunning) {
+                Stop-BuildingWind
+                Start-Sleep -Seconds 5
+                Start-BuildingWind
+            }
+        }
+        
+        return $hasChanges
+    }
+    catch {
+        throw "Git operation failed: $($_.Exception.Message)"
+    }
+    finally {
+        # 원래 위치로 돌아가기
+        if ($PSScriptRoot) {
+            Set-Location -Path $PSScriptRoot
+        }
+    }
+}
+
+# Weather-CCTV와 BuildingWind 스크립트 로드
+. (Join-Path -Path $PSScriptRoot -ChildPath "weather-cctv-commands.ps1")
+. (Join-Path -Path $PSScriptRoot -ChildPath "buildingwind-commands.ps1")
 
 # Form 생성
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "DOCKER MANAGER"
-$form.Size = New-Object System.Drawing.Size(300,450)
+$form.Size = New-Object System.Drawing.Size(300,540)
 $form.StartPosition = "CenterScreen"
 $form.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 
@@ -27,7 +121,6 @@ $updateButton = New-Object System.Windows.Forms.Button
 $updateButton.Location = New-Object System.Drawing.Point(30,30)
 $updateButton.Size = New-Object System.Drawing.Size(180,30)
 $updateButton.Text = "GITHUB UPDATE"
-$updateButton.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 $updateButton.Add_Click({
     $updateButton.Enabled = $false
     $updateButton.Text = "UPDATING..."
@@ -68,8 +161,25 @@ $updateButton.Add_Click({
 # Weather-CCTV GroupBox 생성
 $weatherGroupBox = New-Object System.Windows.Forms.GroupBox
 $weatherGroupBox.Location = New-Object System.Drawing.Point(20,120)
-$weatherGroupBox.Size = New-Object System.Drawing.Size(240,120)
+$weatherGroupBox.Size = New-Object System.Drawing.Size(240,160)
 $weatherGroupBox.Text = "Weather-CCTV"
+
+# Weather-CCTV URL 레이블 생성
+$weatherUrlLabel = New-Object System.Windows.Forms.Label
+$weatherUrlLabel.Location = New-Object System.Drawing.Point(30,120)
+$weatherUrlLabel.Size = New-Object System.Drawing.Size(50,20)
+$weatherUrlLabel.Text = "URL:"
+
+# Weather-CCTV URL 링크 생성
+$weatherUrlLink = New-Object System.Windows.Forms.LinkLabel
+$weatherUrlLink.Location = New-Object System.Drawing.Point(80,120)
+$weatherUrlLink.Size = New-Object System.Drawing.Size(130,20)
+$weatherUrlLink.Text = ""
+$weatherUrlLink.Add_Click({
+    if ($weatherUrlLink.Text) {
+        Start-Process "http://localhost:3000"
+    }
+})
 
 # Weather-CCTV Start 버튼 생성
 $weatherStartButton = New-Object System.Windows.Forms.Button
@@ -81,13 +191,20 @@ $weatherStartButton.Add_Click({
     $weatherStartButton.Text = "STARTING..."
     try {
         Start-WeatherCCTV
+        $weatherUrlLabel.Visible = $true
+        $weatherUrlLink.Text = "localhost:3000"
+        
+        # Building-Wind 버튼들 비활성화
+        $buildingStartButton.Enabled = $false
+        $buildingStopButton.Enabled = $false
+        
         [System.Windows.Forms.MessageBox]::Show("Weather-CCTV services started successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
     }
     catch {
         [System.Windows.Forms.MessageBox]::Show("Failed to start Weather-CCTV services: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        $weatherStartButton.Enabled = $true
     }
     finally {
-        $weatherStartButton.Enabled = $true
         $weatherStartButton.Text = "START"
     }
 })
@@ -102,24 +219,49 @@ $weatherStopButton.Add_Click({
     $weatherStopButton.Text = "STOPPING..."
     try {
         Stop-WeatherCCTV
+        $weatherUrlLabel.Visible = $false
+        $weatherUrlLink.Text = ""
+        
+        # 모든 버튼 활성화
+        $weatherStartButton.Enabled = $true
+        $weatherStopButton.Enabled = $true
+        $buildingStartButton.Enabled = $true
+        $buildingStopButton.Enabled = $true
+        
         [System.Windows.Forms.MessageBox]::Show("Weather-CCTV services stopped successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
     }
     catch {
         [System.Windows.Forms.MessageBox]::Show("Failed to stop Weather-CCTV services: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
     }
     finally {
-        $weatherStopButton.Enabled = $true
         $weatherStopButton.Text = "STOP"
     }
 })
 
-# BuildingWind GroupBox 생성
+# Building-Wind GroupBox 생성
 $buildingGroupBox = New-Object System.Windows.Forms.GroupBox
-$buildingGroupBox.Location = New-Object System.Drawing.Point(20,260)
-$buildingGroupBox.Size = New-Object System.Drawing.Size(240,120)
-$buildingGroupBox.Text = "BuildingWind"
+$buildingGroupBox.Location = New-Object System.Drawing.Point(20,290)
+$buildingGroupBox.Size = New-Object System.Drawing.Size(240,160)
+$buildingGroupBox.Text = "Building-Wind"
 
-# BuildingWind Start 버튼 생성
+# Building-Wind URL 레이블 생성
+$buildingUrlLabel = New-Object System.Windows.Forms.Label
+$buildingUrlLabel.Location = New-Object System.Drawing.Point(30,120)
+$buildingUrlLabel.Size = New-Object System.Drawing.Size(50,20)
+$buildingUrlLabel.Text = "URL:"
+
+# Building-Wind URL 링크 생성
+$buildingUrlLink = New-Object System.Windows.Forms.LinkLabel
+$buildingUrlLink.Location = New-Object System.Drawing.Point(80,120)
+$buildingUrlLink.Size = New-Object System.Drawing.Size(130,20)
+$buildingUrlLink.Text = ""
+$buildingUrlLink.Add_Click({
+    if ($buildingUrlLink.Text) {
+        Start-Process "http://localhost:8080"
+    }
+})
+
+# Building-Wind Start 버튼 생성
 $buildingStartButton = New-Object System.Windows.Forms.Button
 $buildingStartButton.Location = New-Object System.Drawing.Point(30,40)
 $buildingStartButton.Size = New-Object System.Drawing.Size(180,30)
@@ -129,18 +271,25 @@ $buildingStartButton.Add_Click({
     $buildingStartButton.Text = "STARTING..."
     try {
         Start-BuildingWind
-        [System.Windows.Forms.MessageBox]::Show("BuildingWind services started successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        $buildingUrlLabel.Visible = $true
+        $buildingUrlLink.Text = "localhost:8080"
+        
+        # Weather-CCTV 버튼들 비활성화
+        $weatherStartButton.Enabled = $false
+        $weatherStopButton.Enabled = $false
+        
+        [System.Windows.Forms.MessageBox]::Show("Building-Wind services started successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
     }
     catch {
-        [System.Windows.Forms.MessageBox]::Show("Failed to start BuildingWind services: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        [System.Windows.Forms.MessageBox]::Show("Failed to start Building-Wind services: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        $buildingStartButton.Enabled = $true
     }
     finally {
-        $buildingStartButton.Enabled = $true
         $buildingStartButton.Text = "START"
     }
 })
 
-# BuildingWind Stop 버튼 생성
+# Building-Wind Stop 버튼 생성
 $buildingStopButton = New-Object System.Windows.Forms.Button
 $buildingStopButton.Location = New-Object System.Drawing.Point(30,80)
 $buildingStopButton.Size = New-Object System.Drawing.Size(180,30)
@@ -150,28 +299,54 @@ $buildingStopButton.Add_Click({
     $buildingStopButton.Text = "STOPPING..."
     try {
         Stop-BuildingWind
-        [System.Windows.Forms.MessageBox]::Show("BuildingWind services stopped successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        $buildingUrlLabel.Visible = $false
+        $buildingUrlLink.Text = ""
+        
+        # 모든 버튼 활성화
+        $weatherStartButton.Enabled = $true
+        $weatherStopButton.Enabled = $true
+        $buildingStartButton.Enabled = $true
+        $buildingStopButton.Enabled = $true
+        
+        [System.Windows.Forms.MessageBox]::Show("Building-Wind services stopped successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
     }
     catch {
-        [System.Windows.Forms.MessageBox]::Show("Failed to stop BuildingWind services: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        [System.Windows.Forms.MessageBox]::Show("Failed to stop Building-Wind services: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
     }
     finally {
-        $buildingStopButton.Enabled = $true
         $buildingStopButton.Text = "STOP"
     }
 })
+
+# 저작권 레이블 생성
+$copyrightLabel = New-Object System.Windows.Forms.Label
+$copyrightLabel.Location = New-Object System.Drawing.Point(20, 475)
+$copyrightLabel.Size = New-Object System.Drawing.Size(240, 25)
+$copyrightLabel.Text = "Copyright 2025 JungWooGyun. All rights reserved."
+$copyrightLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+$copyrightLabel.ForeColor = [System.Drawing.Color]::Gray
+$copyrightLabel.Font = New-Object System.Drawing.Font("맑은 고딕", 8)
 
 # 컨트롤들을 GroupBox에 추가
 $updateGroupBox.Controls.Add($updateButton)
 $weatherGroupBox.Controls.Add($weatherStartButton)
 $weatherGroupBox.Controls.Add($weatherStopButton)
+$weatherGroupBox.Controls.Add($weatherUrlLabel)
+$weatherGroupBox.Controls.Add($weatherUrlLink)
 $buildingGroupBox.Controls.Add($buildingStartButton)
 $buildingGroupBox.Controls.Add($buildingStopButton)
+$buildingGroupBox.Controls.Add($buildingUrlLabel)
+$buildingGroupBox.Controls.Add($buildingUrlLink)
 
 # GroupBox를 폼에 추가
 $form.Controls.Add($updateGroupBox)
 $form.Controls.Add($weatherGroupBox)
 $form.Controls.Add($buildingGroupBox)
+$form.Controls.Add($copyrightLabel)
+
+# 초기 상태 설정
+$weatherUrlLabel.Visible = $false
+$buildingUrlLabel.Visible = $false
 
 # 폼 표시
 $form.ShowDialog() 
