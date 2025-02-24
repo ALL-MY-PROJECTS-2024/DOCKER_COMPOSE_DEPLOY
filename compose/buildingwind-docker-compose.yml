@@ -1,0 +1,71 @@
+networks:
+  building-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.2.0/24
+    driver_opts:
+      com.docker.network.driver.mtu: 9000
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+
+volumes:
+  bn_logs:
+    driver: local
+  bn_data:
+    driver: local
+
+services:
+  mysql8:
+    image: junwoogyun/mysql8-custom:latest
+    container_name: mysql8-container
+    networks:
+      building-network:
+        ipv4_address: 192.168.2.30
+    ports:
+      - "3330:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ./DB/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    environment:
+      MYSQL_ROOT_PASSWORD: Zhfldk11!
+      MYSQL_DATABASE: testdb
+      MYSQL_USER: dbconn
+      MYSQL_PASSWORD: Zhfldk11!
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+
+  bn:
+    image: junwoogyun/bn-building:latest
+    container_name: bn-container
+    networks:
+      building-network:
+        ipv4_address: 192.168.2.40
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql8:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql8:3306/testdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_USERNAME=dbconn
+      - SPRING_DATASOURCE_PASSWORD=Zhfldk11!
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.MySQLDialect
+    volumes:
+      - bn_logs:/app/logs
+      - bn_data:/app/data
+      - /:/host_root:ro
+    tmpfs:
+      - /app/temp:rw,noexec,nosuid,size=100M
+      - /app/cache:rw,noexec,nosuid,size=50M

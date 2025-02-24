@@ -6,13 +6,40 @@ Add-Type -AssemblyName System.Drawing
 
 # Form 생성
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "Weather-CCTV Controller"
-$form.Size = New-Object System.Drawing.Size(300,350)
+$form.Text = "Docker Manager"
+$form.Size = New-Object System.Drawing.Size(300,450)
 $form.StartPosition = "CenterScreen"
+
+# Update GroupBox 생성
+$updateGroupBox = New-Object System.Windows.Forms.GroupBox
+$updateGroupBox.Location = New-Object System.Drawing.Point(20,20)
+$updateGroupBox.Size = New-Object System.Drawing.Size(240,80)
+$updateGroupBox.Text = "Update"
+
+# Update 버튼 생성
+$updateButton = New-Object System.Windows.Forms.Button
+$updateButton.Location = New-Object System.Drawing.Point(30,30)
+$updateButton.Size = New-Object System.Drawing.Size(180,30)
+$updateButton.Text = "Update & Restart"
+$updateButton.Add_Click({
+    $updateButton.Enabled = $false
+    $updateButton.Text = "Updating..."
+    try {
+        Update-Project
+        [System.Windows.Forms.MessageBox]::Show("Update completed successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }
+    catch {
+        [System.Windows.Forms.MessageBox]::Show("Update failed: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    }
+    finally {
+        $updateButton.Enabled = $true
+        $updateButton.Text = "Update & Restart"
+    }
+})
 
 # Weather-CCTV GroupBox 생성
 $weatherGroupBox = New-Object System.Windows.Forms.GroupBox
-$weatherGroupBox.Location = New-Object System.Drawing.Point(20,20)
+$weatherGroupBox.Location = New-Object System.Drawing.Point(20,120)
 $weatherGroupBox.Size = New-Object System.Drawing.Size(240,120)
 $weatherGroupBox.Text = "Weather-CCTV"
 
@@ -36,7 +63,7 @@ $weatherStopButton.Add_Click({
 
 # BuildingWind GroupBox 생성
 $buildingGroupBox = New-Object System.Windows.Forms.GroupBox
-$buildingGroupBox.Location = New-Object System.Drawing.Point(20,160)
+$buildingGroupBox.Location = New-Object System.Drawing.Point(20,260)
 $buildingGroupBox.Size = New-Object System.Drawing.Size(240,120)
 $buildingGroupBox.Text = "BuildingWind"
 
@@ -59,12 +86,14 @@ $buildingStopButton.Add_Click({
 })
 
 # 컨트롤들을 GroupBox에 추가
+$updateGroupBox.Controls.Add($updateButton)
 $weatherGroupBox.Controls.Add($weatherStartButton)
 $weatherGroupBox.Controls.Add($weatherStopButton)
 $buildingGroupBox.Controls.Add($buildingStartButton)
 $buildingGroupBox.Controls.Add($buildingStopButton)
 
 # GroupBox를 폼에 추가
+$form.Controls.Add($updateGroupBox)
 $form.Controls.Add($weatherGroupBox)
 $form.Controls.Add($buildingGroupBox)
 
