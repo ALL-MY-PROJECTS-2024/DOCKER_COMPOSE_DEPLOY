@@ -26,12 +26,25 @@ function Update-Project {
         Start-Process "git" -ArgumentList "remote add origin https://github.com/ALL-MY-PROJECTS-2024/DOCKER_COMPOSE_DEPLOY.git" -NoNewWindow -Wait -WorkingDirectory $projectPath
     }
     
+    # 현재 커밋 해시 저장
+    $beforeHash = Start-Process "git" -ArgumentList "rev-parse HEAD" -NoNewWindow -Wait -WorkingDirectory $projectPath -RedirectStandardOutput "temp.txt" -PassThru
+    $beforeHash = Get-Content "temp.txt"
+    Remove-Item "temp.txt"
+    
     # Git fetch 및 main 브랜치 설정
     Start-Process "git" -ArgumentList "fetch" -NoNewWindow -Wait -WorkingDirectory $projectPath
     Start-Process "git" -ArgumentList "checkout main" -NoNewWindow -Wait -WorkingDirectory $projectPath
     
     # Git pull 실행
     Start-Process "git" -ArgumentList "pull origin main" -NoNewWindow -Wait -WorkingDirectory $projectPath
+    
+    # 현재 커밋 해시 확인
+    $afterHash = Start-Process "git" -ArgumentList "rev-parse HEAD" -NoNewWindow -Wait -WorkingDirectory $projectPath -RedirectStandardOutput "temp.txt" -PassThru
+    $afterHash = Get-Content "temp.txt"
+    Remove-Item "temp.txt"
+    
+    # 변경사항이 있는지 확인
+    $hasChanges = $beforeHash -ne $afterHash
     
     # 현재 실행 중인 컨테이너 확인
     $weatherRunning = docker ps -q -f name=weather
@@ -50,6 +63,8 @@ function Update-Project {
         Start-Sleep -Seconds 5
         Start-BuildingWind
     }
+    
+    return $hasChanges
 }
 
 function Remove-WeatherCCTVImages {

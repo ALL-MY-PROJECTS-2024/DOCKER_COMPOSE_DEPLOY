@@ -25,13 +25,26 @@ $updateButton.Add_Click({
     $updateButton.Enabled = $false
     $updateButton.Text = "Updating..."
     try {
-        Update-Project
-        [System.Windows.Forms.MessageBox]::Show("Update completed successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        $hasChanges = Update-Project
+        if ($hasChanges) {
+            [System.Windows.Forms.MessageBox]::Show("Updates found. The application will restart.", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+            # 현재 프로세스의 경로와 인수를 가져옴
+            $scriptPath = $MyInvocation.MyCommand.Path
+            $batchPath = Join-Path -Path (Split-Path -Parent (Split-Path -Parent $scriptPath)) -ChildPath "start-gui.bat"
+            
+            # 새 프로세스 시작
+            Start-Process "cmd.exe" -ArgumentList "/c `"$batchPath`"" -NoNewWindow
+            
+            # 현재 폼 종료
+            $form.Close()
+        } else {
+            [System.Windows.Forms.MessageBox]::Show("No updates found.", "Information", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+            $updateButton.Enabled = $true
+            $updateButton.Text = "Update & Restart"
+        }
     }
     catch {
         [System.Windows.Forms.MessageBox]::Show("Update failed: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
-    }
-    finally {
         $updateButton.Enabled = $true
         $updateButton.Text = "Update & Restart"
     }
