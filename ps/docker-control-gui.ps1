@@ -168,24 +168,21 @@ $showConsoleCheckbox.Checked = $false
 # Weather-CCTV GroupBox 생성
 $weatherGroupBox = New-Object System.Windows.Forms.GroupBox
 $weatherGroupBox.Location = New-Object System.Drawing.Point(20,150)
-$weatherGroupBox.Size = New-Object System.Drawing.Size(240,120)  # 높이 조정
+$weatherGroupBox.Size = New-Object System.Drawing.Size(240,120)
 $weatherGroupBox.Text = "Weather-CCTV"
 $weatherGroupBox.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
 $weatherGroupBox.Font = New-Object System.Drawing.Font("맑은 고딕", 9, [System.Drawing.FontStyle]::Bold)
-$weatherGroupBox.ForeColor = [System.Drawing.Color]::DarkBlue
 
 # Weather-CCTV 버튼들
 $weatherStartButton = New-Object System.Windows.Forms.Button
 $weatherStartButton.Location = New-Object System.Drawing.Point(30,30)
 $weatherStartButton.Size = New-Object System.Drawing.Size(180,30)
 $weatherStartButton.Text = "START"
-$weatherStartButton.ForeColor = [System.Drawing.Color]::DarkBlue
 
 $weatherStopButton = New-Object System.Windows.Forms.Button
 $weatherStopButton.Location = New-Object System.Drawing.Point(30,70)
 $weatherStopButton.Size = New-Object System.Drawing.Size(180,30)
 $weatherStopButton.Text = "STOP"
-$weatherStopButton.ForeColor = [System.Drawing.Color]::DarkBlue
 
 # Weather-CCTV URL 링크 생성
 $weatherUrlLink = New-Object System.Windows.Forms.LinkLabel
@@ -203,24 +200,21 @@ $weatherUrlLink.Add_Click({
 # Building-Wind GroupBox 생성
 $buildingGroupBox = New-Object System.Windows.Forms.GroupBox
 $buildingGroupBox.Location = New-Object System.Drawing.Point(20,290)
-$buildingGroupBox.Size = New-Object System.Drawing.Size(240,120)  # 높이 조정
+$buildingGroupBox.Size = New-Object System.Drawing.Size(240,120)
 $buildingGroupBox.Text = "Building-Wind"
 $buildingGroupBox.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
 $buildingGroupBox.Font = New-Object System.Drawing.Font("맑은 고딕", 9, [System.Drawing.FontStyle]::Bold)
-$buildingGroupBox.ForeColor = [System.Drawing.Color]::DarkGreen
 
 # Building-Wind 버튼들
 $buildingStartButton = New-Object System.Windows.Forms.Button
 $buildingStartButton.Location = New-Object System.Drawing.Point(30,30)
 $buildingStartButton.Size = New-Object System.Drawing.Size(180,30)
 $buildingStartButton.Text = "START"
-$buildingStartButton.ForeColor = [System.Drawing.Color]::DarkGreen
 
 $buildingStopButton = New-Object System.Windows.Forms.Button
 $buildingStopButton.Location = New-Object System.Drawing.Point(30,70)
 $buildingStopButton.Size = New-Object System.Drawing.Size(180,30)
 $buildingStopButton.Text = "STOP"
-$buildingStopButton.ForeColor = [System.Drawing.Color]::DarkGreen
 
 # Building-Wind URL 링크 생성
 $buildingUrlLink = New-Object System.Windows.Forms.LinkLabel
