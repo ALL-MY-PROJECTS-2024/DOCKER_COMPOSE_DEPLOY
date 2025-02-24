@@ -333,8 +333,9 @@ $weatherStartButton.Add_Click({
         $weatherUrlLink.Text = "localhost:3000"
         
         # PowerShell 프로세스 종료
+        # Success 메시지 확인 후 종료
         if ($showConsoleCheckbox.Checked -and $process -and -not $process.HasExited) {
-            $process.Kill()
+            $process.WaitForExit()
         }
     }
     catch {
@@ -416,8 +417,9 @@ $buildingStartButton.Add_Click({
         $weatherStopButton.Enabled = $false
         
         # PowerShell 프로세스 종료
+        # Success 메시지 확인 후 종료
         if ($showConsoleCheckbox.Checked -and $process -and -not $process.HasExited) {
-            $process.Kill()
+            $process.WaitForExit()
         }
     }
     catch {
