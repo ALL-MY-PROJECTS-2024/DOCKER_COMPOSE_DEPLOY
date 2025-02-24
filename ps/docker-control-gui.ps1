@@ -1,3 +1,8 @@
+# 인코딩 설정
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
@@ -9,6 +14,7 @@ $form = New-Object System.Windows.Forms.Form
 $form.Text = "Docker Compose Manager"
 $form.Size = New-Object System.Drawing.Size(300,450)
 $form.StartPosition = "CenterScreen"
+$form.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 
 # Update GroupBox 생성
 $updateGroupBox = New-Object System.Windows.Forms.GroupBox
@@ -21,6 +27,7 @@ $updateButton = New-Object System.Windows.Forms.Button
 $updateButton.Location = New-Object System.Drawing.Point(30,30)
 $updateButton.Size = New-Object System.Drawing.Size(180,30)
 $updateButton.Text = "GITHUB 업데이트"
+$updateButton.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 $updateButton.Add_Click({
     $updateButton.Enabled = $false
     $updateButton.Text = "업데이트 중..."
@@ -69,6 +76,7 @@ $weatherStartButton = New-Object System.Windows.Forms.Button
 $weatherStartButton.Location = New-Object System.Drawing.Point(30,40)
 $weatherStartButton.Size = New-Object System.Drawing.Size(180,30)
 $weatherStartButton.Text = "시작"
+$weatherStartButton.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 $weatherStartButton.Add_Click({
     Start-WeatherCCTV
 })
@@ -78,6 +86,7 @@ $weatherStopButton = New-Object System.Windows.Forms.Button
 $weatherStopButton.Location = New-Object System.Drawing.Point(30,80)
 $weatherStopButton.Size = New-Object System.Drawing.Size(180,30)
 $weatherStopButton.Text = "종료"
+$weatherStopButton.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 $weatherStopButton.Add_Click({
     Stop-WeatherCCTV
 })
@@ -93,6 +102,7 @@ $buildingStartButton = New-Object System.Windows.Forms.Button
 $buildingStartButton.Location = New-Object System.Drawing.Point(30,40)
 $buildingStartButton.Size = New-Object System.Drawing.Size(180,30)
 $buildingStartButton.Text = "시작"
+$buildingStartButton.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 $buildingStartButton.Add_Click({
     Start-BuildingWind
 })
@@ -102,6 +112,7 @@ $buildingStopButton = New-Object System.Windows.Forms.Button
 $buildingStopButton.Location = New-Object System.Drawing.Point(30,80)
 $buildingStopButton.Size = New-Object System.Drawing.Size(180,30)
 $buildingStopButton.Text = "종료"
+$buildingStopButton.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 $buildingStopButton.Add_Click({
     Stop-BuildingWind
 })
