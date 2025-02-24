@@ -9,7 +9,7 @@ networks:
 
 services:
   mysql8-container:
-    image: junwoogyun/mysql8-custom:1.0 
+    image: junwoogyun/mysql8-custom:latest
     container_name: mysql8-container
     networks:
       my-custom-network:
