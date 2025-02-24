@@ -70,7 +70,7 @@ function Update-Project {
         
         # 현재 실행 중인 컨테이너 확인 및 재시작 (변경사항이 있을 때만)
         if ($hasChanges) {
-            $weatherRunning = docker ps -q -f name=weather
+            $weatherRunning = docker ps -q -f name=mysql8-container
             $buildingRunning = docker ps -q -f name=building
             
             if ($weatherRunning) {
@@ -83,6 +83,16 @@ function Update-Project {
                 Stop-BuildingWind
                 Start-Sleep -Seconds 5
                 Start-BuildingWind
+            }
+
+            # MySQL 컨테이너의 상태를 확인하는 부분도 수정
+            $mysqlRunning = docker ps -q -f name=mysql8-container
+            if ($mysqlRunning) {
+                # MySQL 컨테이너가 실행 중인 경우
+                Write-Host "MySQL 컨테이너가 실행 중입니다."
+            } else {
+                # MySQL 컨테이너가 실행 중이지 않은 경우
+                Write-Host "MySQL 컨테이너가 실행 중이지 않습니다."
             }
         }
         

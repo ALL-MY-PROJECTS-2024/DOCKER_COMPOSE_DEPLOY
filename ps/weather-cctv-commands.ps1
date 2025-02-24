@@ -28,7 +28,7 @@ function Start-WeatherCCTV {
     Write-Host "Starting MySQL and Redis..."
     $startArgs = @{
         FilePath = "docker-compose"
-        ArgumentList = "-f `"$composeFilePath`" up -d mysql-container bn_redis-container"
+        ArgumentList = "-f `"$composeFilePath`" up -d mysql8-container bn_redis-container"
         Wait = $true
         NoNewWindow = $true  # 콘솔 창을 새로 열지 않고 현재 창 사용
     }
@@ -39,7 +39,7 @@ function Start-WeatherCCTV {
     $mysqlHealthy = $false
     $retryCount = 0
     while (-not $mysqlHealthy -and $retryCount -lt 5) {
-        $status = docker inspect --format='{{.State.Health.Status}}' mysql-container 2>$null
+        $status = docker inspect --format='{{.State.Health.Status}}' mysql8-container 2>$null
         if ($status -eq "healthy") {
             $mysqlHealthy = $true
         } else {
@@ -103,7 +103,7 @@ function Stop-WeatherCCTV {
 function Remove-WeatherCCTVImages {
     # Weather-CCTV 관련 이미지 삭제
     $images = @(
-        "junwoogyun/mysql-custom:1.0",
+        "junwoogyun/mysql8-custom:1.0",
         "junwoogyun/bn_redis:latest",
         "junwoogyun/flask-opencv-app:latest",
         "junwoogyun/flask-opencv-app2:latest",
