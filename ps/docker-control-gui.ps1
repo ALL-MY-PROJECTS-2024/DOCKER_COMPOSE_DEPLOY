@@ -76,9 +76,20 @@ $weatherStartButton = New-Object System.Windows.Forms.Button
 $weatherStartButton.Location = New-Object System.Drawing.Point(30,40)
 $weatherStartButton.Size = New-Object System.Drawing.Size(180,30)
 $weatherStartButton.Text = "START"
-$weatherStartButton.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 $weatherStartButton.Add_Click({
-    Start-WeatherCCTV
+    $weatherStartButton.Enabled = $false
+    $weatherStartButton.Text = "STARTING..."
+    try {
+        Start-WeatherCCTV
+        [System.Windows.Forms.MessageBox]::Show("Weather-CCTV services started successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }
+    catch {
+        [System.Windows.Forms.MessageBox]::Show("Failed to start Weather-CCTV services: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    }
+    finally {
+        $weatherStartButton.Enabled = $true
+        $weatherStartButton.Text = "START"
+    }
 })
 
 # Weather-CCTV Stop 버튼 생성
@@ -86,9 +97,20 @@ $weatherStopButton = New-Object System.Windows.Forms.Button
 $weatherStopButton.Location = New-Object System.Drawing.Point(30,80)
 $weatherStopButton.Size = New-Object System.Drawing.Size(180,30)
 $weatherStopButton.Text = "STOP"
-$weatherStopButton.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 $weatherStopButton.Add_Click({
-    Stop-WeatherCCTV
+    $weatherStopButton.Enabled = $false
+    $weatherStopButton.Text = "STOPPING..."
+    try {
+        Stop-WeatherCCTV
+        [System.Windows.Forms.MessageBox]::Show("Weather-CCTV services stopped successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }
+    catch {
+        [System.Windows.Forms.MessageBox]::Show("Failed to stop Weather-CCTV services: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    }
+    finally {
+        $weatherStopButton.Enabled = $true
+        $weatherStopButton.Text = "STOP"
+    }
 })
 
 # BuildingWind GroupBox 생성
@@ -102,9 +124,20 @@ $buildingStartButton = New-Object System.Windows.Forms.Button
 $buildingStartButton.Location = New-Object System.Drawing.Point(30,40)
 $buildingStartButton.Size = New-Object System.Drawing.Size(180,30)
 $buildingStartButton.Text = "START"
-$buildingStartButton.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 $buildingStartButton.Add_Click({
-    Start-BuildingWind
+    $buildingStartButton.Enabled = $false
+    $buildingStartButton.Text = "STARTING..."
+    try {
+        Start-BuildingWind
+        [System.Windows.Forms.MessageBox]::Show("BuildingWind services started successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }
+    catch {
+        [System.Windows.Forms.MessageBox]::Show("Failed to start BuildingWind services: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    }
+    finally {
+        $buildingStartButton.Enabled = $true
+        $buildingStartButton.Text = "START"
+    }
 })
 
 # BuildingWind Stop 버튼 생성
@@ -112,9 +145,20 @@ $buildingStopButton = New-Object System.Windows.Forms.Button
 $buildingStopButton.Location = New-Object System.Drawing.Point(30,80)
 $buildingStopButton.Size = New-Object System.Drawing.Size(180,30)
 $buildingStopButton.Text = "STOP"
-$buildingStopButton.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 $buildingStopButton.Add_Click({
-    Stop-BuildingWind
+    $buildingStopButton.Enabled = $false
+    $buildingStopButton.Text = "STOPPING..."
+    try {
+        Stop-BuildingWind
+        [System.Windows.Forms.MessageBox]::Show("BuildingWind services stopped successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }
+    catch {
+        [System.Windows.Forms.MessageBox]::Show("Failed to stop BuildingWind services: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    }
+    finally {
+        $buildingStopButton.Enabled = $true
+        $buildingStopButton.Text = "STOP"
+    }
 })
 
 # 컨트롤들을 GroupBox에 추가

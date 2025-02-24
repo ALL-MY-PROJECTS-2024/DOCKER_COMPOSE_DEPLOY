@@ -112,7 +112,8 @@ function Remove-WeatherCCTVImages {
     )
     
     foreach ($image in $images) {
-        Start-Process "docker" -ArgumentList "rmi $image -f" -NoNewWindow
+        Write-Host "Removing image: $image"
+        docker rmi $image -f 2>$null
     }
 }
 
@@ -124,46 +125,95 @@ function Remove-BuildingWindImages {
     )
     
     foreach ($image in $images) {
-        Start-Process "docker" -ArgumentList "rmi $image -f" -NoNewWindow
+        Write-Host "Removing image: $image"
+        docker rmi $image -f 2>$null
     }
 }
 
 function Start-WeatherCCTV {
+    # BuildingWind가 실행 중이면 중지 및 정리
+    $buildingRunning = docker ps -q -f name=building
+    if ($buildingRunning) {
+        Write-Host "Stopping BuildingWind services..."
+        Stop-BuildingWind
+        Start-Sleep -Seconds 5
+        
+        # 모든 BuildingWind 이미지와 컨테이너 정리
+        Write-Host "Cleaning up BuildingWind resources..."
+        docker container prune -f
+        Remove-BuildingWindImages
+        docker image prune -f
+        Start-Sleep -Seconds 2
+        
+        Write-Host "BuildingWind cleanup completed."
+    }
+    
+    # Weather-CCTV 시작
+    Write-Host "Starting Weather-CCTV services..."
     $composeFilePath = Get-ComposeFilePath
-    Start-Process "docker-compose" -ArgumentList "-f `"$composeFilePath`" up -d" -NoNewWindow
+    Start-Process "docker-compose" -ArgumentList "-f `"$composeFilePath`" up -d" -NoNewWindow -Wait
 }
 
 function Stop-WeatherCCTV {
     $composeFilePath = Get-ComposeFilePath
+    Write-Host "Stopping Weather-CCTV services..."
+    
     # Docker Compose 중지
-    Start-Process "docker-compose" -ArgumentList "-f `"$composeFilePath`" down" -NoNewWindow
+    Start-Process "docker-compose" -ArgumentList "-f `"$composeFilePath`" down" -NoNewWindow -Wait
     
     # 모든 중지된 컨테이너 삭제
-    Start-Process "docker" -ArgumentList "container prune -f" -NoNewWindow
+    Write-Host "Removing stopped containers..."
+    docker container prune -f
     
     # Weather-CCTV 관련 이미지 삭제
+    Write-Host "Removing Weather-CCTV images..."
     Remove-WeatherCCTVImages
     
     # 사용하지 않는 이미지 삭제
-    Start-Process "docker" -ArgumentList "image prune -a -f" -NoNewWindow
+    Write-Host "Cleaning up unused images..."
+    docker image prune -f
 }
 
 function Start-BuildingWind {
+    # Weather-CCTV가 실행 중이면 중지 및 정리
+    $weatherRunning = docker ps -q -f name=weather
+    if ($weatherRunning) {
+        Write-Host "Stopping Weather-CCTV services..."
+        Stop-WeatherCCTV
+        Start-Sleep -Seconds 5
+        
+        # 모든 Weather-CCTV 이미지와 컨테이너 정리
+        Write-Host "Cleaning up Weather-CCTV resources..."
+        docker container prune -f
+        Remove-WeatherCCTVImages
+        docker image prune -f
+        Start-Sleep -Seconds 2
+        
+        Write-Host "Weather-CCTV cleanup completed."
+    }
+    
+    # BuildingWind 시작
+    Write-Host "Starting BuildingWind services..."
     $composePath = Get-BuildingWindComposePath
-    Start-Process "docker-compose" -ArgumentList "-f `"$composePath`" up -d" -NoNewWindow
+    Start-Process "docker-compose" -ArgumentList "-f `"$composePath`" up -d" -NoNewWindow -Wait
 }
 
 function Stop-BuildingWind {
     $composePath = Get-BuildingWindComposePath
+    Write-Host "Stopping BuildingWind services..."
+    
     # Docker Compose 중지
-    Start-Process "docker-compose" -ArgumentList "-f `"$composePath`" down" -NoNewWindow
+    Start-Process "docker-compose" -ArgumentList "-f `"$composePath`" down" -NoNewWindow -Wait
     
     # 모든 중지된 컨테이너 삭제
-    Start-Process "docker" -ArgumentList "container prune -f" -NoNewWindow
+    Write-Host "Removing stopped containers..."
+    docker container prune -f
     
     # BuildingWind 관련 이미지 삭제
+    Write-Host "Removing BuildingWind images..."
     Remove-BuildingWindImages
     
     # 사용하지 않는 이미지 삭제
-    Start-Process "docker" -ArgumentList "image prune -a -f" -NoNewWindow
+    Write-Host "Cleaning up unused images..."
+    docker image prune -f
 } 

@@ -8,9 +8,9 @@ networks:
         - subnet: 192.168.1.0/24
 
 services:
-  mysql8:
+  mysql-container:
     image: junwoogyun/mysql-custom:1.0 
-    container_name: mysql8-container
+    container_name: mysql-container
     networks:
       my-custom-network:
         ipv4_address: 192.168.1.30
@@ -27,7 +27,7 @@ services:
       MYSQL_USER: dbonn
       MYSQL_PASSWORD: Zhfldk11!
 
-  redis:
+  bn_redis-container:
     image: junwoogyun/bn_redis:latest
     container_name: bn_redis-container
     networks:
@@ -36,7 +36,7 @@ services:
     ports:
       - "6376:6376"
 
-  yolo:
+  flask-opencv-container:
     image: junwoogyun/flask-opencv-app:latest
     container_name: flask-opencv-container
     networks:
@@ -45,7 +45,7 @@ services:
     ports:
       - "5000:5000"
 
-  predict:
+  flask-opencv-container2:
     image: junwoogyun/flask-opencv-app2:latest
     container_name: flask-opencv-container2
     networks:
@@ -56,31 +56,41 @@ services:
       - "5003:5003"
       - "5004:5004"
 
-  auth:
+  bn_auth-container:
     image: junwoogyun/bn_auth:latest
     container_name: bn_auth-container
     networks:
       my-custom-network:
         ipv4_address: 192.168.1.40
     depends_on:
-      mysql8:
+      mysql-container:
         condition: service_healthy
+      bn_redis-container:
+        condition: service_started
+    environment:
+      - MYSQL_HOST=mysql-container
+      - MYSQL_PORT=3306
+      - MYSQL_USER=dbconn
+      - MYSQL_PASSWORD=Zhfldk11!
+      - MYSQL_DATABASE=testdb
+      - REDIS_HOST=bn_redis-container
+      - REDIS_PORT=6379
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8095/health"]
       interval: 10s
       timeout: 5s
       retries: 3
     ports:
-      - "8095:8095" 
+      - "8095:8095"
 
-  fn:
+  react-container:
     image: junwoogyun/react-docker-app:latest
     container_name: react-container
     networks:
       my-custom-network:
         ipv4_address: 192.168.1.10
     depends_on:
-      auth:
+      bn_auth-container:
         condition: service_healthy
     ports:
       - "3000:80"
