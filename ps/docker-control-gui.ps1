@@ -103,6 +103,30 @@ function Update-Project {
 . (Join-Path -Path $PSScriptRoot -ChildPath "weather-cctv-commands.ps1")
 . (Join-Path -Path $PSScriptRoot -ChildPath "buildingwind-commands.ps1")
 
+# 컨테이너 정리 함수 추가
+function Remove-AllContainers {
+    try {
+        # 실행 중인 모든 컨테이너 중지
+        $runningContainers = docker ps -q
+        if ($runningContainers) {
+            Write-Host "Stopping all running containers..."
+            docker stop $runningContainers
+        }
+        
+        # 모든 컨테이너 제거
+        Write-Host "Removing all containers..."
+        docker container prune -f
+        
+        Write-Host "All containers have been removed."
+    }
+    catch {
+        Write-Host "Error removing containers: $($_.Exception.Message)"
+    }
+}
+
+# Form 생성 전에 컨테이너 정리 실행
+Remove-AllContainers
+
 # Form 생성
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "DOCKER MANAGER"
@@ -171,7 +195,7 @@ $weatherGroupBox.Location = New-Object System.Drawing.Point(20,150)
 $weatherGroupBox.Size = New-Object System.Drawing.Size(240,120)
 $weatherGroupBox.Text = "Weather-CCTV"
 $weatherGroupBox.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-$weatherGroupBox.Font = New-Object System.Drawing.Font("맑은 고딕", 9, [System.Drawing.FontStyle]::Bold)
+$weatherGroupBox.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 
 # Weather-CCTV 버튼들
 $weatherStartButton = New-Object System.Windows.Forms.Button
@@ -203,7 +227,7 @@ $buildingGroupBox.Location = New-Object System.Drawing.Point(20,290)
 $buildingGroupBox.Size = New-Object System.Drawing.Size(240,120)
 $buildingGroupBox.Text = "Building-Wind"
 $buildingGroupBox.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-$buildingGroupBox.Font = New-Object System.Drawing.Font("맑은 고딕", 9, [System.Drawing.FontStyle]::Bold)
+$buildingGroupBox.Font = New-Object System.Drawing.Font("맑은 고딕", 9)
 
 # Building-Wind 버튼들
 $buildingStartButton = New-Object System.Windows.Forms.Button
