@@ -6,7 +6,7 @@ Add-Type -AssemblyName System.Drawing
 
 # Form 생성
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "Docker Manager"
+$form.Text = "Docker Compose Manager"
 $form.Size = New-Object System.Drawing.Size(300,450)
 $form.StartPosition = "CenterScreen"
 
@@ -28,23 +28,31 @@ $updateButton.Add_Click({
         $hasChanges = Update-Project
         if ($hasChanges) {
             [System.Windows.Forms.MessageBox]::Show("Updates found. The application will restart.", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-            # 현재 프로세스의 경로와 인수를 가져옴
-            $scriptPath = $MyInvocation.MyCommand.Path
-            $batchPath = Join-Path -Path (Split-Path -Parent (Split-Path -Parent $scriptPath)) -ChildPath "start-gui.bat"
             
-            # 새 프로세스 시작
-            Start-Process "cmd.exe" -ArgumentList "/c `"$batchPath`"" -NoNewWindow
-            
-            # 현재 폼 종료
-            $form.Close()
+            # 현재 스크립트 경로 가져오기
+            $scriptPath = $PSCommandPath
+            if ($scriptPath) {
+                $batchPath = Join-Path -Path (Split-Path -Parent (Split-Path -Parent $scriptPath)) -ChildPath "start-gui.bat"
+                if (Test-Path $batchPath) {
+                    # 새 프로세스 시작
+                    Start-Process "cmd.exe" -ArgumentList "/c `"$batchPath`"" -NoNewWindow
+                    
+                    # 현재 폼 종료
+                    $form.Close()
+                } else {
+                    throw "Could not find start-gui.bat"
+                }
+            } else {
+                throw "Could not determine script path"
+            }
         } else {
             [System.Windows.Forms.MessageBox]::Show("No updates found.", "Information", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-            $updateButton.Enabled = $true
-            $updateButton.Text = "Update & Restart"
         }
     }
     catch {
         [System.Windows.Forms.MessageBox]::Show("Update failed: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    }
+    finally {
         $updateButton.Enabled = $true
         $updateButton.Text = "Update & Restart"
     }
