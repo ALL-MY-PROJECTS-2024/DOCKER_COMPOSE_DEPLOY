@@ -20,10 +20,10 @@ $updateGroupBox.Text = "Update"
 $updateButton = New-Object System.Windows.Forms.Button
 $updateButton.Location = New-Object System.Drawing.Point(30,30)
 $updateButton.Size = New-Object System.Drawing.Size(180,30)
-$updateButton.Text = "Update & Restart"
+$updateButton.Text = "GITHUB 업데이트"
 $updateButton.Add_Click({
     $updateButton.Enabled = $false
-    $updateButton.Text = "Updating..."
+    $updateButton.Text = "업데이트 중..."
     try {
         $hasChanges = Update-Project
         if ($hasChanges) {
@@ -54,7 +54,7 @@ $updateButton.Add_Click({
     }
     finally {
         $updateButton.Enabled = $true
-        $updateButton.Text = "Update & Restart"
+        $updateButton.Text = "GITHUB 업데이트"
     }
 })
 
@@ -68,7 +68,7 @@ $weatherGroupBox.Text = "Weather-CCTV"
 $weatherStartButton = New-Object System.Windows.Forms.Button
 $weatherStartButton.Location = New-Object System.Drawing.Point(30,40)
 $weatherStartButton.Size = New-Object System.Drawing.Size(180,30)
-$weatherStartButton.Text = "Start"
+$weatherStartButton.Text = "시작"
 $weatherStartButton.Add_Click({
     Start-WeatherCCTV
 })
@@ -77,7 +77,7 @@ $weatherStartButton.Add_Click({
 $weatherStopButton = New-Object System.Windows.Forms.Button
 $weatherStopButton.Location = New-Object System.Drawing.Point(30,80)
 $weatherStopButton.Size = New-Object System.Drawing.Size(180,30)
-$weatherStopButton.Text = "Stop"
+$weatherStopButton.Text = "종료"
 $weatherStopButton.Add_Click({
     Stop-WeatherCCTV
 })
@@ -92,7 +92,7 @@ $buildingGroupBox.Text = "BuildingWind"
 $buildingStartButton = New-Object System.Windows.Forms.Button
 $buildingStartButton.Location = New-Object System.Drawing.Point(30,40)
 $buildingStartButton.Size = New-Object System.Drawing.Size(180,30)
-$buildingStartButton.Text = "Start"
+$buildingStartButton.Text = "시작"
 $buildingStartButton.Add_Click({
     Start-BuildingWind
 })
@@ -101,7 +101,7 @@ $buildingStartButton.Add_Click({
 $buildingStopButton = New-Object System.Windows.Forms.Button
 $buildingStopButton.Location = New-Object System.Drawing.Point(30,80)
 $buildingStopButton.Size = New-Object System.Drawing.Size(180,30)
-$buildingStopButton.Text = "Stop"
+$buildingStopButton.Text = "종료"
 $buildingStopButton.Add_Click({
     Stop-BuildingWind
 })
