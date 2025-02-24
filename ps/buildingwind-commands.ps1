@@ -19,7 +19,13 @@ function Start-BuildingWind {
     # BuildingWind 시작
     Write-Host "Starting BuildingWind services..."
     $composePath = Get-BuildingWindComposePath
-    Start-Process "docker-compose" -ArgumentList "-f `"$composePath`" up -d" -NoNewWindow -Wait
+    $startArgs = @{
+        FilePath = "docker-compose"
+        ArgumentList = "-f `"$composePath`" up -d"
+        Wait = $true
+        NoNewWindow = $true  # 콘솔 창을 새로 열지 않고 현재 창 사용
+    }
+    Start-Process @startArgs
 }
 
 function Stop-BuildingWind {

@@ -26,7 +26,13 @@ function Start-WeatherCCTV {
     
     # MySQL과 Redis 먼저 시작
     Write-Host "Starting MySQL and Redis..."
-    Start-Process "docker-compose" -ArgumentList "-f `"$composeFilePath`" up -d mysql-container bn_redis-container" -NoNewWindow -Wait
+    $startArgs = @{
+        FilePath = "docker-compose"
+        ArgumentList = "-f `"$composeFilePath`" up -d mysql-container bn_redis-container"
+        Wait = $true
+        NoNewWindow = $true  # 콘솔 창을 새로 열지 않고 현재 창 사용
+    }
+    Start-Process @startArgs
     Start-Sleep -Seconds 10  # MySQL이 완전히 시작될 때까지 대기
     
     # MySQL 상태 확인
@@ -49,7 +55,13 @@ function Start-WeatherCCTV {
     
     # 나머지 서비스 시작
     Write-Host "Starting remaining services..."
-    Start-Process "docker-compose" -ArgumentList "-f `"$composeFilePath`" up -d" -NoNewWindow -Wait
+    $startArgs = @{
+        FilePath = "docker-compose"
+        ArgumentList = "-f `"$composeFilePath`" up -d"
+        Wait = $true
+        NoNewWindow = $true  # 콘솔 창을 새로 열지 않고 현재 창 사용
+    }
+    Start-Process @startArgs
     
     # bn_auth 컨테이너 상태 확인
     Start-Sleep -Seconds 5
@@ -65,6 +77,7 @@ function Start-WeatherCCTV {
     }
     
     Write-Host "All services started successfully."
+    return $process  # 프로세스 객체 반환
 }
 
 function Stop-WeatherCCTV {

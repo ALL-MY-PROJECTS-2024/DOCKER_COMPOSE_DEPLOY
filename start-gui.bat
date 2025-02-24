@@ -1,2 +1,2 @@
 @echo off
-powershell -ExecutionPolicy Bypass -File "%~dp0ps\docker-control-gui.ps1" 
+powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File "%~dp0ps\docker-control-gui.ps1" 
